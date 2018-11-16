@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package nl.javadev.grpc.tracing.example;
+
+import "ProductService.proto";
+
+service GatewayService {
+    rpc getProducts (GetProductsRequest) returns (GetProductsResponse) {
+    }
+}
+
+message GetProductsRequest {
+    repeated string product_ids = 1;
+}
+
+message GetProductsResponse {
+    repeated ProductWithDetails products = 1;
+}

@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package nl.javadev.grpc.tracing.example;
+
+service ProductService {
+    rpc GetProductsWithPriceAndStockDetails (GetProductsWithPriceAndStockDetailsRequest) returns (GetProductsWithPriceAndStockDetailsResponse) {
+    }
+}
+
+message GetProductsWithPriceAndStockDetailsRequest {
+    repeated string product_ids = 1;
+}
+
+message GetProductsWithPriceAndStockDetailsResponse {
+    repeated ProductWithDetails products = 1;
+}
+
+message ProductWithDetails {
+    string id = 1;
+    string description = 2;
+    StockDetails stock_details = 3;
+    PriceDetails price_details = 4;
+}
+
+message StockDetails {
+    int32 nr_in_stock = 1;
+}
+
+message PriceDetails {
+    double current_price = 1;
+}

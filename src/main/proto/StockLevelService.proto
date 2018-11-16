@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package nl.javadev.grpc.tracing.example;
+
+service StockLevelService {
+    rpc GetCurrentStockLevelForProduct (GetCurrentStockLevelForProductRequest) returns (GetCurrentStockLevelForProductResponse) {
+    }
+}
+
+message GetCurrentStockLevelForProductRequest {
+    string product_id = 1;
+}
+
+message GetCurrentStockLevelForProductResponse {
+    bool could_be_determined = 1;
+    int32 stock_level = 2;
+}

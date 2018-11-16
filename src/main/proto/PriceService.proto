@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package nl.javadev.grpc.tracing.example;
+
+service PriceService {
+    rpc GetPriceForProduct (GetPriceForProductRequest) returns (GetPriceForProductResponse) {
+    }
+}
+
+message GetPriceForProductRequest {
+    string product_id = 1;
+}
+
+message GetPriceForProductResponse {
+    bool could_be_determined = 1;
+    double price = 2;
+}
