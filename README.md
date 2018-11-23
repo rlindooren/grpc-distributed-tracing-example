@@ -170,7 +170,8 @@ public void getProductsWithPriceAndStockDetails(final GetProductsWithPriceAndSto
     // It will not be available for the threads that execute the asynchronous steps.
     final var span = Tracing.getTracer().getCurrentSpan();
 
-    // Passing on the span to a different method. This Future is executed by a different thread than the gRPC thread
+    // Passing on the span to a different method (createFutureForEachProduct).
+    // This Future is executed by a different thread than the gRPC thread
     Future.sequence(createFutureForEachProduct(request.getProductIdsList(), span))
             .map(productsWithDetails ->
                     GetProductsWithPriceAndStockDetailsResponse.newBuilder()
