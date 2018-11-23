@@ -4,7 +4,6 @@ import io.grpc.ServerServiceDefinition;
 import io.grpc.ServiceDescriptor;
 import io.opencensus.exporter.trace.stackdriver.StackdriverTraceConfiguration;
 import io.opencensus.exporter.trace.stackdriver.StackdriverTraceExporter;
-import nl.javadev.grpc.tracing.util.SampleRemoteSpanFactory;
 
 import java.util.stream.Collectors;
 
@@ -21,9 +20,6 @@ class AbstractServerRunner {
     static void runServer(final ServerBuilder serverBuilder) throws Exception {
         // Start an exporter for every server instance
         StackdriverTraceExporter.createAndRegister(StackdriverTraceConfiguration.builder().build());
-
-        // Register a stream tracer factory that will listen for incoming sampling spans
-        serverBuilder.addStreamTracerFactory(new SampleRemoteSpanFactory());
 
         final Server server = serverBuilder.build();
 

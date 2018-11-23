@@ -121,51 +121,6 @@ static void runServer(final ServerBuilder serverBuilder) throws Exception {
 ```
 [AbstractServerRunner](src/main/java/AbstractServerRunner.java)
 
-### Continuing a remote span in a service
-
-But we need to do something else as well.
-We must have services explicitly continue remote spans.
-
-We do this by configuring a stream tracer.
-
-```java
-static void runServer(final ServerBuilder serverBuilder) throws Exception {
-    ... ommitted ...
-
-    // Register a stream tracer factory that will listen for incoming sampling spans
-    serverBuilder.addStreamTracerFactory(new SampleRemoteSpanFactory());
-    
-    ... ommitted ...
-}
-```
-[AbstractServerRunner](src/main/java/AbstractServerRunner.java)
-
-This stream tracer will detect remote sampling spans and explicitly continue these.
-
-```java
-SampleRemoteSpanTracer(String fullMethodName, Metadata headers) {
-    SpanContext remoteSpanContext = headers.get(CensusTracingModuleExposer.getTracingHeader());
-    if (remoteSpanContext == SpanContext.INVALID) {
-        remoteSpanContext = null;
-    }
-
-    if (remoteSpanContext != null && remoteSpanContext.getTraceOptions().isSampled()) {
-        System.out.println(
-                String.format("Found a sampled remote span/trace for call to '%s': %s. Going to create a sampling child span",
-                        fullMethodName, remoteSpanContext));
-
-        sampledSpan =
-                Tracing.getTracer()
-                        .spanBuilderWithRemoteParent(fullMethodName, remoteSpanContext)
-                        .setSampler(Samplers.alwaysSample())
-                        .startSpan();
-    } else {
-        System.out.println(String.format("No sampled remote span/trace found: %s", remoteSpanContext));
-    }
-}
-```
-[SampleRemoteSpanTracer](src/main/java/nl/javadev/grpc/tracing/util/SampleRemoteSpanTracer.java)
-
 ### Tracing synchronous code
 
 The Gateway service simply does a blocking call to the Product service.
