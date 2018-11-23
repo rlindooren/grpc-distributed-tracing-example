@@ -91,6 +91,7 @@ parentSpan.end();
 Thread.sleep(10_000);
 ```
 [RunClient](src/main/java/RunClient.java)
+
 [TracingUtil](src/main/java/nl/javadev/grpc/tracing/util/TracingUtil.java)
 
 #### Spans from the services are not shown (yet)
@@ -250,8 +251,9 @@ private Future<ProductWithDetails> getProductAndDetails(final String productId, 
 ### Result
 
 Now the trace information from all down stream services is included as well. 🎉
-In this screenshot I've drawn boxes to make it more obvious of which steps are being executed.
-You can see three products being retrieved and then enriched in parallel.
+
+In this screenshot I've drawn colored boxes around the different steps in attempt to make it a bit easier
+to quickly see the three products being retrieved and then enriched in parallel.
 
 ![Traces of services not showing](doc/img/trace-services-exporting.png)
 
