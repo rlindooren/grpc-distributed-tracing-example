@@ -76,13 +76,12 @@ final var spanName = String.format("tracing-demo-%s", UUID.randomUUID());
 final var makeSpanActive = true;
 final var parentSpan = TracingUtil.startNewParentSamplingSpan(spanName, makeSpanActive);
 
-// Call a client
+// Call a service
 final var request = GetProductsRequest.newBuilder()
         .addProductIds("1")
         .addProductIds("2")
         .addProductIds("3")
         .build();
-
 final var response = gatewayServiceClient.getProducts(request);
 
 parentSpan.end();
