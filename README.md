@@ -67,8 +67,9 @@ public static void main(String[] args) throws Exception {
 #### Starting and ending a sampling span
 
 Before we call a gRPC service we need to start a sampling span.
-By making this the active span it will be propagated to the service that are called next.
+By making this the active span it will be propagated to the service that is called next.
 When done we close the span.
+
 Finally we make the client wait 10 seconds to allow the stack driver exporter to upload the tracing data to Stackdriver.
 
 ```java
@@ -109,7 +110,7 @@ Important here is to have the services export to the same Google Cloud project a
 This will allow Stackdriver to combine the tracing information.
 
 _When running this demo locally as described further down this will not be a problem._
-_It's more something to keep in mind when tracing deployed services from a client running in an environment different that the one where the services are running._
+_It's more something to keep in mind when tracing deployed services from a client running in an environment different than the one where the services are running._
 
 ```java
 static void runServer(final ServerBuilder serverBuilder) throws Exception {
@@ -157,8 +158,9 @@ Doing this all in an asynchronous way (using VAVR).
 
 This code demonstrates that we then explicitly have to capture the span before executing the asynchronous code.
 The reason for doing this is that the asynchronous code is executed by a different thread than the gRPC thread
-that calls the rpc method initially. The gRPC thread is bound to a context that "knows" about the span.
-While the thread that executes the code asynchronously is aware of any gRPC context. 
+that calls the rpc method initially. A context that "knows" about the span is bound to the gRPC thread.
+While the thread that executes the code asynchronously is not aware of any gRPC context.
+And thus cannot retrieve the active span. 
 
 ```java
 @Override
@@ -187,7 +189,8 @@ public void getProductsWithPriceAndStockDetails(final GetProductsWithPriceAndSto
 
 When another gRPC service is called from within asynchronously executed code then we need to somehow pass the earlier
 captured span to this next service.
-This is possible by setting it as the active span on the thread that makes the call to next service.
+This is possible by setting it as the active span on the thread that executes the asynchronous code
+making the call to next service.
 
 ```java
 private Future<Double> getPriceForProduct(final String productId, final Span span) {
@@ -213,9 +216,10 @@ Such a child span can be used to add an extra "step" in the trace overview.
 It is however important to always end that span as well!
 
 This is demonstrated in the following code.
+
 It's perhaps a bit hard to digest when you're not used to a more functional programming style.
 But the important parts here are the creation of the child span based on the earlier captured span.
-And the fact that this child span is closed at the end.
+And the fact that this child span is closed at the end of the Future.
 
 ```java
 private Future<ProductWithDetails> getProductAndDetails(final String productId, final Span span) {
@@ -249,7 +253,10 @@ private Future<ProductWithDetails> getProductAndDetails(final String productId, 
 
 ### Result
 
-Now the trace information from all down stream services is included as well. 🎉
+When the services are configured to export to Stackdriver as well
+and the span is passed correctly throughout asynchronous code.
+The we will see that, after running the client again, that the trace information from all down stream services 
+is now included. 🎉
 
 In this screenshot I've drawn colored boxes around the different steps in attempt to make it a bit easier
 to quickly see the three products being retrieved and then enriched in parallel.
