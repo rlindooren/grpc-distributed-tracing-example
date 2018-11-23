@@ -14,6 +14,7 @@ import nl.javadev.grpc.tracing.example.ProductServiceOuterClass.*;
 import nl.javadev.grpc.tracing.example.StockLevelServiceGrpc.StockLevelServiceFutureStub;
 import nl.javadev.grpc.tracing.example.StockLevelServiceOuterClass.GetCurrentStockLevelForProductRequest;
 import nl.javadev.grpc.tracing.example.StockLevelServiceOuterClass.GetCurrentStockLevelForProductResponse;
+import nl.javadev.grpc.tracing.util.TracingUtil;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -47,6 +48,7 @@ public class ProductService extends ProductServiceGrpc.ProductServiceImplBase {
         // It will not be available for the threads that execute the asynchronous steps.
         final var span = Tracing.getTracer().getCurrentSpan();
 
+        // Passing on the span to a different method. The Future is executed by a different thread than the gRPC thread
         Future.sequence(createFutureForEachProduct(request.getProductIdsList(), span))
                 .map(productsWithDetails ->
                         GetProductsWithPriceAndStockDetailsResponse.newBuilder()
@@ -64,13 +66,10 @@ public class ProductService extends ProductServiceGrpc.ProductServiceImplBase {
      * In a real system this would probably go through a DAO layer or via a different micro service.
      */
     private Future<Option<BasicProductData>> getProductFromDatabase(final String productId, final Span span) {
-
-        final var spanName = String.format("getProductFromDatabase:%s", productId);
-
         return Future
                 .fromCompletableFuture(
                         // This callable will be executed asynchronously within a new span
-                        TracingUtil.executeAsyncInNewChildSpan(span, spanName,
+                        TracingUtil.executeAsyncInNewChildSpan(span, "getProductFromDatabase",
                                 () -> {
                                     // Add some latency
                                     SleepUtil.sleepRandomly(20);
@@ -125,11 +124,12 @@ public class ProductService extends ProductServiceGrpc.ProductServiceImplBase {
     }
 
     private Future<ProductWithDetails> getProductAndDetails(final String productId, final Span span) {
-        final var spanName = String.format("getProductAndDetails:%s", productId);
+        final var spanName = String.format("getProductAndDetails#%s", productId);
         return Future
+                // Create a new child span while executed asynchronously, based on the initially captured span
                 .successful(TracingUtil.createNewChildSpan(spanName, span))
                 .flatMap(childSpan ->
-                        // Start by retrieving the basic product data from the database
+                        // Start by retrieving the basic product data from the database (we pass on the child span)
                         getProductFromDatabase(productId, childSpan)
                                 // Fail if the product could not be found in the database
                                 .map(optionalProduct ->
@@ -143,8 +143,9 @@ public class ProductService extends ProductServiceGrpc.ProductServiceImplBase {
                                                 .setDescription(product.description)
                                                 .build()
                                 )
-                                // Fill in the price and stock details asynchronously
+                                // Fill in the price and stock details asynchronously (we also here pass on the child span)
                                 .flatMap(pwd -> enrichProductWithPriceAndStockDetails(pwd, childSpan))
+                                // Close the child span at the end of this asynchronously executed Future
                                 .onComplete(productWithDetails -> childSpan.end())
                 );
     }

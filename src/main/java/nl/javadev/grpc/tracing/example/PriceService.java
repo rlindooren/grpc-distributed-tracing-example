@@ -8,6 +8,7 @@ import io.vavr.control.Option;
 import nl.javadev.grpc.tracing.example.PriceServiceGrpc.PriceServiceImplBase;
 import nl.javadev.grpc.tracing.example.PriceServiceOuterClass.GetPriceForProductRequest;
 import nl.javadev.grpc.tracing.example.PriceServiceOuterClass.GetPriceForProductResponse;
+import nl.javadev.grpc.tracing.util.TracingUtil;
 
 import java.math.BigDecimal;
 import java.util.Random;
@@ -48,18 +49,19 @@ public class PriceService extends PriceServiceImplBase {
      * This method fakes a call to a third party system
      */
     private Future<Option<BigDecimal>> getPriceFromPriceInformationSystem(final String productId, final Span span) {
-
-        // TODO span
-
         return Future
-                // Add some latency
-                .runRunnable(() -> SleepUtil.sleepRandomly(20))
-                // Come up with a random price
-                .map(aVoid -> new BigDecimal(String.format("%s.%s",
-                        random.nextInt(5) + 1,
-                        random.nextInt(100))))
-                // Wrap it in an option
-                // it's meaningless for this code, but in a real system the requested product might not have price information
-                .map(Option::of);
+                .successful(TracingUtil.createNewChildSpan("getPriceFromPriceInformationSystem", span))
+                .flatMap(childSpan ->
+                        // Add some latency
+                        Future.runRunnable(() -> SleepUtil.sleepRandomly(20))
+                                // Come up with a random price
+                                .map(aVoid -> new BigDecimal(String.format("%s.%s",
+                                        random.nextInt(5) + 1,
+                                        random.nextInt(100))))
+                                // Wrap it in an option
+                                // it's meaningless for this code, but in a real system the requested product might not have price information
+                                .map(Option::of)
+                                .onComplete(productWithDetails -> childSpan.end())
+                );
     }
 }

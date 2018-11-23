@@ -1,10 +1,11 @@
-import io.grpc.*;
+import io.grpc.ManagedChannelBuilder;
 import io.opencensus.exporter.trace.stackdriver.StackdriverTraceConfiguration;
 import io.opencensus.exporter.trace.stackdriver.StackdriverTraceExporter;
 import io.opencensus.trace.Span;
-import nl.javadev.grpc.tracing.example.*;
+import nl.javadev.grpc.tracing.example.GatewayServiceGrpc;
 import nl.javadev.grpc.tracing.example.GatewayServiceGrpc.GatewayServiceBlockingStub;
 import nl.javadev.grpc.tracing.example.GatewayServiceOuterClass.GetProductsRequest;
+import nl.javadev.grpc.tracing.util.TracingUtil;
 
 import java.util.UUID;
 import java.util.stream.IntStream;
@@ -14,8 +15,10 @@ class RunClient {
     public static void main(String[] args) throws Exception {
         StackdriverTraceExporter.createAndRegister(StackdriverTraceConfiguration.builder().build());
 
-        final var channel = ManagedChannelBuilder.forAddress(AbstractServerRunner.HOST, AbstractServerRunner.GATEWAY_SERVICE_PORT)
+        final var channel = ManagedChannelBuilder
+                .forAddress(AbstractServerRunner.HOST, AbstractServerRunner.GATEWAY_SERVICE_PORT)
                 .usePlaintext().build();
+
         final var gatewayServiceClient = GatewayServiceGrpc.newBlockingStub(channel);
 
         // Make two calls, the first call takes a bit more time which may be confusing in the trace graph

@@ -7,7 +7,6 @@ public class RunGatewayServiceServer extends AbstractServerRunner {
         runServer(
                 ServerBuilder.forPort(GATEWAY_SERVICE_PORT)
                         .addService(new GatewayService(HOST, PRODUCT_SERVICE_PORT))
-                        .build()
         );
     }
 }

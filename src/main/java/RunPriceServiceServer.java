@@ -7,7 +7,6 @@ public class RunPriceServiceServer extends AbstractServerRunner {
         runServer(
                 ServerBuilder.forPort(PRICE_SERVICE_PORT)
                         .addService(new PriceService())
-                        .build()
         );
     }
 }

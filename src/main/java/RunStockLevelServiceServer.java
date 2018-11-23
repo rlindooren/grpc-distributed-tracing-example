@@ -7,7 +7,6 @@ public class RunStockLevelServiceServer extends AbstractServerRunner {
         runServer(
                 ServerBuilder.forPort(STOCKLEVEL_SERVICE_PORT)
                         .addService(new StockLevelService())
-                        .build()
         );
     }
 }

@@ -1,4 +1,4 @@
-package nl.javadev.grpc.tracing.example;
+package nl.javadev.grpc.tracing.util;
 
 import io.opencensus.trace.Span;
 import io.opencensus.trace.Tracing;
@@ -21,6 +21,17 @@ public class TracingUtil {
                 .spanBuilderWithExplicitParent(nameForTheChildSpan, parentSpan)
                 .startSpanAndCall(callable);
     }
+
+    /**
+     * Creates a new child span around the provided callable, using the current active span as the parent
+     */
+    public static <V> Callable<V> wrapInNewChildSpan(final String nameForTheChildSpan,
+                                                     final Callable<V> callable) {
+        return () -> Tracing.getTracer()
+                .spanBuilder(nameForTheChildSpan)
+                .startSpanAndCall(callable);
+    }
+
 
     /**
      * Creates a new child span around the provided callable

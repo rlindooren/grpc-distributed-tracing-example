@@ -7,7 +7,6 @@ public class RunProductServiceServer extends AbstractServerRunner {
         runServer(
                 ServerBuilder.forPort(PRODUCT_SERVICE_PORT)
                         .addService(new ProductService(HOST, PRICE_SERVICE_PORT, HOST, STOCKLEVEL_SERVICE_PORT))
-                        .build()
         );
     }
 }
